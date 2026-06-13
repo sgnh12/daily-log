@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Daily Log</title>
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#ffffff">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      -webkit-text-size-adjust: 100%;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      --bg: #ffffff;
+      --bg2: #f7f7f5;
+      --border: #e0ddd8;
+      --text: #1a1a1a;
+      --text2: #6b6b6b;
+      --accent: #2563eb;
+      --accent-bg: #eff6ff;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --radius: 10px;
+      --radius-sm: 6px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 16px;
+      line-height: 1.6;
+      padding-bottom: calc(100px + env(safe-area-inset-bottom));
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .header {
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px;
+      padding-top: calc(14px + env(safe-area-inset-top));
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 100;
+    }
+    .header-left { display: flex; flex-direction: column; gap: 2px; }
+    .header-date { font-size: 18px; font-weight: 600; letter-spacing: 0.01em; }
+    .header-saved { font-size: 12px; color: var(--text2); }
+    .settings-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 6px 12px;
+      font-size: 13px;
+      color: var(--text2);
+      cursor: pointer;
+    }
+
+    .section {
+      margin: 0 16px 12px;
+      background: var(--bg2);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .section-header {
+      padding: 12px 16px 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text2);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .section-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+
+    .meta-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 16px 0; }
+
+    .chip-group { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip {
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text2);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .chip.selected {
+      background: var(--accent-bg);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .energy-group { display: flex; gap: 6px; }
+    .energy-btn {
+      flex: 1;
+      padding: 8px 0;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text2);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+    }
+    .energy-btn.selected {
+      background: var(--accent-bg);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .sleep-row { display: flex; align-items: center; gap: 10px; }
+    .sleep-select {
+      width: 90px;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 16px;
+      text-align: center;
+      cursor: pointer;
+    }
+    .sleep-unit { font-size: 13px; color: var(--text2); }
+
+    .field-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text2);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 16px;
+      line-height: 1.6;
+      resize: vertical;
+      font-family: inherit;
+      min-height: 72px;
+      transition: border-color 0.15s;
+      -webkit-appearance: none;
+    }
+    textarea:focus { outline: none; border-color: var(--accent); }
+    textarea.tall { min-height: 100px; }
+
+    .sub-list { display: flex; flex-direction: column; gap: 6px; }
+    .sub-item { display: flex; gap: 6px; align-items: center; }
+    .sub-item input[type="text"] {
+      flex: 1;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 16px;
+      font-family: inherit;
+      -webkit-appearance: none;
+    }
+    .sub-item input[type="text"]:focus { outline: none; border-color: var(--accent); }
+    .sub-remove {
+      background: none;
+      border: none;
+      color: var(--text2);
+      font-size: 18px;
+      cursor: pointer;
+      padding: 4px 6px;
+      line-height: 1;
+    }
+    .add-sub-btn {
+      background: none;
+      border: 1px dashed var(--border);
+      border-radius: var(--radius-sm);
+      padding: 7px 12px;
+      font-size: 13px;
+      color: var(--text2);
+      cursor: pointer;
+      width: 100%;
+      text-align: left;
+    }
+
+    .submit-area {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 12px 16px;
+      padding-bottom: calc(12px + env(safe-area-inset-bottom));
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+    }
+    .submit-btn {
+      width: 100%;
+      padding: 14px;
+      border-radius: var(--radius);
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      transition: opacity 0.15s;
+    }
+    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .toast {
+      position: fixed;
+      top: calc(70px + env(safe-area-inset-top));
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 10px 20px;
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 500;
+      color: #fff;
+      z-index: 200;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; }
+    .toast.success { background: var(--success); }
+    .toast.error { background: var(--danger); }
+    .toast.warning { background: #d97706; }
+
+    .settings-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 300;
+      align-items: flex-end;
+    }
+    .settings-overlay.open { display: flex; }
+    .settings-panel {
+      background: var(--bg);
+      border-radius: var(--radius) var(--radius) 0 0;
+      padding: 20px;
+      padding-bottom: calc(20px + env(safe-area-inset-bottom));
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .settings-title { font-size: 16px; font-weight: 600; }
+    .settings-label { font-size: 13px; color: var(--text2); margin-bottom: 4px; }
+    .settings-input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--bg2);
+      color: var(--text);
+      font-size: 16px;
+      font-family: monospace;
+      -webkit-appearance: none;
+    }
+    .settings-save-btn {
+      padding: 12px;
+      border-radius: var(--radius);
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .settings-close-btn {
+      padding: 10px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: none;
+      color: var(--text2);
+      font-size: 14px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <div class="header-date" id="header-date"></div>
+    <div class="header-saved" id="header-saved">Not saved</div>
+  </div>
+  <button class="settings-btn" onclick="openSettings()">⚙ Settings</button>
+</div>
+
+<!-- Meta -->
+<div style="margin: 12px 16px 0;">
+  <div class="field-label">Day Type</div>
+  <div class="chip-group" id="daytype-group">
+    <div class="chip" data-value="平日" onclick="toggleChip(this)">平日</div>
+    <div class="chip" data-value="休日" onclick="toggleChip(this)">休日</div>
+    <div class="chip" data-value="学習日" onclick="toggleChip(this)">学習日</div>
+    <div class="chip" data-value="就活" onclick="toggleChip(this)">就活</div>
+    <div class="chip" data-value="インターン" onclick="toggleChip(this)">インターン</div>
+    <div class="chip" data-value="イベント" onclick="toggleChip(this)">イベント</div>
+    <div class="chip" data-value="休養日" onclick="toggleChip(this)">休養日</div>
+  </div>
+</div>
+
+<div class="meta-row">
+  <div style="flex: 1; min-width: 140px;">
+    <div class="field-label">Energy</div>
+    <div class="energy-group" id="energy-group">
+      <button class="energy-btn" data-value="1" onclick="selectEnergy(this)">1</button>
+      <button class="energy-btn" data-value="2" onclick="selectEnergy(this)">2</button>
+      <button class="energy-btn" data-value="3" onclick="selectEnergy(this)">3</button>
+      <button class="energy-btn" data-value="4" onclick="selectEnergy(this)">4</button>
+      <button class="energy-btn" data-value="5" onclick="selectEnergy(this)">5</button>
+    </div>
+  </div>
+  <div>
+    <div class="field-label">Sleep</div>
+    <div class="sleep-row">
+      <select class="sleep-select" id="sleep-input">
+        <option value="">--</option>
+        <option value="1">1.0</option>
+        <option value="1.5">1.5</option>
+        <option value="2">2.0</option>
+        <option value="2.5">2.5</option>
+        <option value="3">3.0</option>
+        <option value="3.5">3.5</option>
+        <option value="4">4.0</option>
+        <option value="4.5">4.5</option>
+        <option value="5">5.0</option>
+        <option value="5.5">5.5</option>
+        <option value="6">6.0</option>
+        <option value="6.5">6.5</option>
+        <option value="7">7.0</option>
+        <option value="7.5">7.5</option>
+        <option value="8">8.0</option>
+        <option value="8.5">8.5</option>
+        <option value="9">9.0</option>
+        <option value="9.5">9.5</option>
+        <option value="10">10.0</option>
+      </select>
+      <span class="sleep-unit">hrs</span>
+    </div>
+  </div>
+</div>
+
+<!-- Focus -->
+<div class="section" style="margin-top: 16px;">
+  <div class="section-header">🎯 Focus</div>
+  <div class="section-body">
+    <div>
+      <div class="field-label">Main task</div>
+      <textarea id="focus-main" placeholder="Main task for today" rows="2"></textarea>
+    </div>
+    <div>
+      <div class="field-label">Sub tasks</div>
+      <div class="sub-list" id="sub-list"></div>
+      <button class="add-sub-btn" onclick="addSubTask()">＋ Add sub task</button>
+    </div>
+  </div>
+</div>
+
+<!-- Daily Report -->
+<div class="section">
+  <div class="section-header">📝 Daily Report</div>
+  <div class="section-body">
+    <div>
+      <div class="field-label">Done</div>
+      <textarea id="report-did" class="tall" placeholder="What you did today"></textarea>
+    </div>
+    <div>
+      <div class="field-label">Learned</div>
+      <textarea id="report-learned" class="tall" placeholder="What you learned"></textarea>
+    </div>
+    <div>
+      <div class="field-label">Blocked</div>
+      <textarea id="report-stuck" placeholder="Blockers & issues"></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- Knowledge -->
+<div class="section">
+  <div class="section-header">💡 Knowledge</div>
+  <div class="section-body">
+    <textarea id="knowledge" class="tall" placeholder="Insights & learnings"></textarea>
+  </div>
+</div>
+
+<!-- Handover -->
+<div class="section">
+  <div class="section-header">🔁 Handover</div>
+  <div class="section-body">
+    <textarea id="handover" placeholder="Notes for tomorrow"></textarea>
+  </div>
+</div>
+
+<!-- Journal -->
+<div class="section">
+  <div class="section-header">💭 Journal</div>
+  <div class="section-body">
+    <textarea id="diary" class="tall" placeholder="Free writing"></textarea>
+  </div>
+</div>
+
+<!-- Submit -->
+<div class="submit-area">
+  <button class="submit-btn" id="submit-btn" onclick="submitLog()">
+    Logging
+  </button>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Settings panel -->
+<div class="settings-overlay" id="settings-overlay" onclick="closeSettingsOnBg(event)">
+  <div class="settings-panel">
+    <div class="settings-title">Settings</div>
+    <div>
+      <div class="settings-label">GAS endpoint URL</div>
+      <input class="settings-input" type="url" id="gas-url-input" placeholder="https://script.google.com/macros/s/...">
+    </div>
+    <button class="settings-save-btn" onclick="saveSettings()">Save</button>
+    <button class="settings-close-btn" onclick="closeSettings()">Cancel</button>
+  </div>
+</div>
+
+<script>
+  const STORAGE_KEY = 'dailylog_draft';
+  const GAS_URL_KEY = 'dailylog_gas_url';
+
+  function getTodayJST() {
+    const now = new Date();
+    const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+    return jst.toISOString().slice(0, 10);
+  }
+
+  function formatHeaderDate(dateStr) {
+    const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const d = new Date(dateStr + 'T00:00:00+09:00');
+    return dateStr + ' ' + WEEKDAYS[d.getDay()];
+  }
+
+  const today = getTodayJST();
+  document.getElementById('header-date').textContent = formatHeaderDate(today);
+
+  const draftKey = STORAGE_KEY + '_' + today;
+  loadDraft();
+
+  function getDraftData() {
+    return {
+      dayType: getSelectedChips(),
+      energyLevel: getSelectedEnergy(),
+      sleepHrs: document.getElementById('sleep-input').value,
+      focus: {
+        main: document.getElementById('focus-main').value,
+        subs: getSubTasks()
+      },
+      report: {
+        did: document.getElementById('report-did').value,
+        learned: document.getElementById('report-learned').value,
+        stuck: document.getElementById('report-stuck').value
+      },
+      knowledge: document.getElementById('knowledge').value,
+      handover: document.getElementById('handover').value,
+      diary: document.getElementById('diary').value
+    };
+  }
+
+  function saveDraft() {
+    localStorage.setItem(draftKey, JSON.stringify(getDraftData()));
+    const now = new Date();
+    const hhmm = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+    document.getElementById('header-saved').textContent = 'Auto saved at ' + hhmm;
+  }
+
+  function loadDraft() {
+    const raw = localStorage.getItem(draftKey);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+
+    if (d.dayType) {
+      d.dayType.forEach(function(v) {
+        const chip = document.querySelector('.chip[data-value="' + v + '"]');
+        if (chip) chip.classList.add('selected');
+      });
+    }
+    if (d.energyLevel) {
+      const btn = document.querySelector('.energy-btn[data-value="' + d.energyLevel + '"]');
+      if (btn) btn.classList.add('selected');
+    }
+    if (d.sleepHrs) document.getElementById('sleep-input').value = d.sleepHrs;
+    if (d.focus) {
+      document.getElementById('focus-main').value = d.focus.main || '';
+      (d.focus.subs || []).forEach(function(s) { addSubTask(s); });
+    }
+    if (d.report) {
+      document.getElementById('report-did').value = d.report.did || '';
+      document.getElementById('report-learned').value = d.report.learned || '';
+      document.getElementById('report-stuck').value = d.report.stuck || '';
+    }
+    document.getElementById('knowledge').value = d.knowledge || '';
+    document.getElementById('handover').value = d.handover || '';
+    document.getElementById('diary').value = d.diary || '';
+
+    document.getElementById('header-saved').textContent = 'Draft restored';
+  }
+
+  document.querySelectorAll('textarea, input[type="number"], input[type="text"], select').forEach(function(el) {
+    el.addEventListener('change', saveDraft);
+    el.addEventListener('input', saveDraft);
+  });
+
+  function toggleChip(el) {
+    el.classList.toggle('selected');
+    saveDraft();
+  }
+
+  function selectEnergy(el) {
+    document.querySelectorAll('.energy-btn').forEach(function(b) { b.classList.remove('selected'); });
+    el.classList.add('selected');
+    saveDraft();
+  }
+
+  function getSelectedChips() {
+    return Array.from(document.querySelectorAll('.chip.selected')).map(function(c) { return c.dataset.value; });
+  }
+
+  function getSelectedEnergy() {
+    const btn = document.querySelector('.energy-btn.selected');
+    return btn ? btn.dataset.value : null;
+  }
+
+  function addSubTask(value) {
+    const list = document.getElementById('sub-list');
+    const item = document.createElement('div');
+    item.className = 'sub-item';
+    item.innerHTML =
+      '<input type="text" placeholder="Sub task" value="' + (value || '') + '">' +
+      '<button class="sub-remove" onclick="removeSubTask(this)">×</button>';
+    item.querySelector('input').addEventListener('input', saveDraft);
+    list.appendChild(item);
+    saveDraft();
+  }
+
+  function removeSubTask(btn) {
+    btn.parentElement.remove();
+    saveDraft();
+  }
+
+  function getSubTasks() {
+    return Array.from(document.querySelectorAll('#sub-list input[type="text"]')).map(function(i) { return i.value; }).filter(function(v) { return v.trim() !== ''; });
+  }
+
+  function openSettings() {
+    document.getElementById('gas-url-input').value = localStorage.getItem(GAS_URL_KEY) || '';
+    document.getElementById('settings-overlay').classList.add('open');
+  }
+
+  function closeSettings() {
+    document.getElementById('settings-overlay').classList.remove('open');
+  }
+
+  function closeSettingsOnBg(e) {
+    if (e.target === document.getElementById('settings-overlay')) closeSettings();
+  }
+
+  function saveSettings() {
+    const url = document.getElementById('gas-url-input').value.trim();
+    if (!url) { showToast('Please enter a URL', 'error'); return; }
+    localStorage.setItem(GAS_URL_KEY, url);
+    closeSettings();
+    showToast('Settings saved', 'success');
+  }
+
+  function submitLog() {
+    const gasUrl = localStorage.getItem(GAS_URL_KEY);
+    if (!gasUrl) {
+      showToast('Register GAS URL in settings', 'warning');
+      openSettings();
+      return;
+    }
+
+    const payload = Object.assign({ date: today }, getDraftData());
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Logging now...';
+
+    fetch(gasUrl, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (data.status === 'ok') {
+        localStorage.removeItem(draftKey);
+        showToast('Logged ✓', 'success');
+        btn.textContent = 'Logged ✓';
+      } else if (data.status === 'duplicate') {
+        showToast('Record already submitted', 'warning');
+        btn.disabled = false;
+        btn.textContent = 'Logging';
+      } else {
+        throw new Error(data.message || 'Failed');
+      }
+    })
+    .catch(function(err) {
+      showToast('Error: ' + err.message, 'error');
+      btn.disabled = false;
+      btn.textContent = 'Retry';
+    });
+  }
+
+  function showToast(msg, type) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast ' + type + ' show';
+    setTimeout(function() { t.classList.remove('show'); }, 3000);
+  }
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js')
+      .then(function() { console.log('SW registered'); })
+      .catch(function(err) { console.log('SW error:', err); });
+  }
+</script>
+</body>
+</html>
