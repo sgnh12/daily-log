@@ -669,6 +669,21 @@
       .then(function() { console.log('SW registered'); })
       .catch(function(err) { console.log('SW error:', err); });
   }
+
+ // 入力欄以外をタップしたらキーボードを閉じる
+ document.addEventListener('click', function(e) {
+   const tag = e.target.tagName;
+   const isInputEl = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+   const isButton = tag === 'BUTTON' || e.target.closest('button');
+   const isChip = e.target.classList.contains('chip');
+   
+   if (!isInputEl && !isButton && !isChip) {
+     if (document.activeElement && document.activeElement !== document.body) {
+       document.activeElement.blur();
+     }
+   }
+ });
+
 </script>
 </body>
 </html>
