@@ -629,6 +629,7 @@
         localStorage.removeItem(draftKey);
         showToast('Logged ✓', 'success');
         btn.textContent = 'Logged ✓';
+        scheduleButtonReset(btn);
       } else if (data.status === 'duplicate') {
         showToast('Record already submitted', 'warning');
         btn.disabled = false;
@@ -642,6 +643,18 @@
       btn.disabled = false;
       btn.textContent = 'Retry';
     });
+  }
+
+  function scheduleButtonReset(btn) {
+    setTimeout(function() {
+      btn.style.transition = 'opacity 0.4s ease';
+      btn.style.opacity = '0';
+      setTimeout(function() {
+        btn.textContent = 'Logging';
+        btn.disabled = false;
+        btn.style.opacity = '1';
+      }, 400);
+    }, 3000);
   }
 
   function showToast(msg, type) {
